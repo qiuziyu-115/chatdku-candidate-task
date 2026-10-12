@@ -7,6 +7,8 @@ from typing import Any
 
 from llama_index.core.vector_stores.utils import metadata_dict_to_node
 
+from ..citations import CitationRegistry
+
 
 @dataclass(frozen=True, slots=True)
 class RetrievedDocument:
@@ -35,15 +37,28 @@ def document_from_payload(node_id: str, payload: dict[str, Any], score: float) -
     )
 
 
-def format_documents(documents: list[RetrievedDocument]) -> str:
-    """Format results for use as a DSPy tool observation."""
+def format_documents(
+    documents: list[RetrievedDocument],
+    registry: CitationRegistry | None = None,
+) -> str:
+    """Format results for use as a DSPy tool observation.
+
+    With a ``registry``, each passage is prefixed with the stable label the
+    synthesizer is expected to cite. Without one the output is byte-for-byte
+    what it was before, so callers that only want raw text still work.
+    """
     if not documents:
         return "No matching documents found."
     blocks = []
     for document in documents:
         source = document.metadata.get("source_path") or document.metadata.get("file_name") or "Unknown source"
         url = document.metadata.get("url", "No URL")
+        if registry is None:
+            heading = f"Source: {source}"
+        else:
+            label = registry.register(document.node_id, document.metadata).label
+            heading = f"[{label}] Source: {source}"
         blocks.append(
-            f"Source: {source}\nURL: {url}\nScore: {document.score:.4f}\n\n{document.text}"
+            f"{heading}\nURL: {url}\nScore: {document.score:.4f}\n\n{document.text}"
         )
     return "\n\n---\n\n".join(blocks)

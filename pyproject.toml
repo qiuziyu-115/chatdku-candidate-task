@@ -6,6 +6,10 @@ readme = "README.md"
 requires-python = ">=3.13"
 
 dependencies = [
+    # SUPPORTED_SUFFIXES and docs/ingestion.md both advertise .docx, but
+    # llama-index-readers-file only pulls in docx2txt as an optional extra, so
+    # ingestion of Word documents fails with an ImportError without this.
+    "docx2txt>=0.9",
     "dspy>=3.4.0",
     "llama-index>=0.14.25",
     "llama-index-embeddings-huggingface>=0.8.0",
@@ -20,6 +24,17 @@ dependencies = [
 agent = "chatdku.cli:main"
 chatdku = "chatdku.cli:main"
 chatdku-ingest = "chatdku.ingestion.cli:main"
+
+# Development only: the citation logic is pure Python and must be testable
+# without a model, a network, or an index. Nothing here is imported at runtime.
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
 
 [build-system]
 requires = ["hatchling"]

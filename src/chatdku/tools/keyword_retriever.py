@@ -8,6 +8,7 @@ from collections import Counter
 
 from qdrant_client import QdrantClient
 
+from ..citations import CitationRegistry
 from ..config import Settings, get_settings
 from ..ingestion.pipeline import qdrant_path
 from .retrieval import RetrievedDocument, document_from_payload, format_documents
@@ -16,8 +17,13 @@ from .retrieval import RetrievedDocument, document_from_payload, format_document
 class KeywordRetriever:
     """Use BM25-style term matching over the Qdrant collection's stored text."""
 
-    def __init__(self, harness_settings: Settings | None = None) -> None:
+    def __init__(
+        self,
+        harness_settings: Settings | None = None,
+        registry: CitationRegistry | None = None,
+    ) -> None:
         self.settings = harness_settings or get_settings()
+        self.registry = registry
 
     def query(self, query: str, top_k: int | None = None) -> list[RetrievedDocument]:
         limit = top_k or self.settings.retrieval_top_k
@@ -41,7 +47,7 @@ class KeywordRetriever:
 
     def __call__(self, keyword_query: str, top_k: int | None = None) -> str:
         """Search the document collection for exact words, names, phrases, and codes."""
-        return format_documents(self.query(keyword_query, top_k))
+        return format_documents(self.query(keyword_query, top_k), self.registry)
 
 
 def _terms(text: str) -> list[str]:

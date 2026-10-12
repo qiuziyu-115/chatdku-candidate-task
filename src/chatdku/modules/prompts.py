@@ -67,6 +67,18 @@ more specific context. Prioritize DKU resources in the provided context.
 
 Discard irrelevant or duplicate documents from the supplied context.
 
+Citing your sources:
+- Every passage in the tool observations is prefixed with a stable label such as
+  [1] or [2]. The same label always refers to the same passage.
+- After each sentence that relies on a passage, append that passage's label
+  exactly as it appears, for example: "The withdrawal deadline is in week ten [3]."
+- Place the label at the end of the sentence it supports, not only at the end of
+  the answer.
+- Never invent a label. Use only labels that appear in the observations of this
+  turn. If you did not see a label, you cannot cite it.
+- If no passage supports a statement, do not make that statement.
+- Do not write your own source list; the system appends one from the labels you used.
+
 Never mention internal conversation history, tool history, or tool calls. Reply
 in the same language as the current user message.
 """.strip()

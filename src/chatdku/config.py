@@ -43,6 +43,19 @@ def _env_float(name: str, default: float) -> float:
         raise ValueError(f"{name} must be a number; received {value!r}.") from exc
 
 
+def _env_bool(name: str, default: bool) -> bool:
+    """Read a boolean flag, accepting the spellings operators actually type."""
+    value = _optional_env(name)
+    if value is None:
+        return default
+    normalized = value.casefold()
+    if normalized in {"1", "true", "yes", "on"}:
+        return True
+    if normalized in {"0", "false", "no", "off"}:
+        return False
+    raise ValueError(f"{name} must be a boolean; received {value!r}.")
+
+
 def _env_path(name: str, default: Path) -> Path:
     path = Path(_env(name, str(default))).expanduser()
     if not path.is_absolute():
@@ -78,6 +91,10 @@ class Settings:
     chunk_size: int
     chunk_overlap: int
     retrieval_top_k: int
+
+    # When true, an answer the gate allowed but that cites no retrieved passage
+    # is replaced by the gate's safe response instead of being returned.
+    require_citations: bool
 
     @classmethod
     def from_environment(cls, env_file: Path | None = None) -> "Settings":
@@ -119,6 +136,7 @@ class Settings:
             chunk_size=_env_int("CHATDKU_CHUNK_SIZE", 512),
             chunk_overlap=_env_int("CHATDKU_CHUNK_OVERLAP", 64),
             retrieval_top_k=_env_int("CHATDKU_RETRIEVAL_TOP_K", 8),
+            require_citations=_env_bool("CHATDKU_REQUIRE_CITATIONS", True),
         )
         settings.validate()
         return settings
@@ -191,6 +209,7 @@ class Settings:
             "document_dir": str(self.document_dir),
             "index_dir": str(self.index_dir),
             "vector_collection": self.vector_collection,
+            "require_citations": self.require_citations,
         }
 
 

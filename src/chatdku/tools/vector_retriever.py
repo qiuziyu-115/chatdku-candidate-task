@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from ..citations import CitationRegistry
 from ..config import Settings, get_settings
 from ..ingestion.pipeline import open_index
 from .retrieval import RetrievedDocument, format_documents
@@ -10,8 +11,13 @@ from .retrieval import RetrievedDocument, format_documents
 class VectorRetriever:
     """Retrieve semantically similar document chunks through LlamaIndex."""
 
-    def __init__(self, harness_settings: Settings | None = None) -> None:
+    def __init__(
+        self,
+        harness_settings: Settings | None = None,
+        registry: CitationRegistry | None = None,
+    ) -> None:
         self.settings = harness_settings or get_settings()
+        self.registry = registry
 
     def query(self, query: str, top_k: int | None = None) -> list[RetrievedDocument]:
         limit = top_k or self.settings.retrieval_top_k
@@ -29,4 +35,4 @@ class VectorRetriever:
 
     def __call__(self, semantic_query: str, top_k: int | None = None) -> str:
         """Search the document collection by meaning and return source-grounded passages."""
-        return format_documents(self.query(semantic_query, top_k))
+        return format_documents(self.query(semantic_query, top_k), self.registry)
