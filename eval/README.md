@@ -24,19 +24,19 @@ steps, the gate, synthesis). Running all 12 questions twice is roughly 100 calls
 Cheap on a small model, but not free and not deterministic.
 
 ```bash
-# 1. Baseline, on the unmodified revision. The eval directory only exists on the
-#    feature branch, so borrow just that directory.
-git checkout main
-git checkout feat/verifiable-citations -- eval/
-uv run python eval/run_eval.py --out eval/results/before.jsonl
-git checkout -- eval/
+# 1. Baseline: the unmodified revision. eval/ first appears in the feature
+#    commit, so borrow just that directory. Write the output outside the repo,
+#    otherwise switching branches would discard it.
+git checkout a60f11d
+git checkout 07d06ec -- eval/
+uv run python eval/run_eval.py --out /tmp/before.jsonl
 
-# 2. Back on the branch, with the changes applied.
-git checkout feat/verifiable-citations
-uv run python eval/run_eval.py --out eval/results/after.jsonl
+# 2. Back on the feature revision, with the changes applied.
+git checkout main
+uv run python eval/run_eval.py --out /tmp/after.jsonl
 
 # 3. Compare.
-uv run python eval/compare.py eval/results/before.jsonl eval/results/after.jsonl
+uv run python eval/compare.py /tmp/before.jsonl /tmp/after.jsonl
 ```
 
 Add `--limit 3` to spend less. Add `--no-rewrite` to skip query rewriting, which
